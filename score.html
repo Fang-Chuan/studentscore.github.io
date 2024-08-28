@@ -1,0 +1,374 @@
+<html><head><base href="https://example.com/"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>可愛個人積分競賽</title>
+<style>
+body {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  margin: 0;
+  padding: 20px;
+  transition: background 0.5s ease;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+  text-align: center;
+  color: #ff69b4;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+input, button {
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 2px solid #ff69b4;
+  margin: 5px;
+}
+
+button {
+  background-color: #ff69b4;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+button:hover {
+  background-color: #ff1493;
+  transform: scale(1.05);
+}
+
+.scoreboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.player-card {
+  background-color: rgba(255, 250, 240, 0.9);
+  border: 3px solid #ffd700;
+  border-radius: 15px;
+  padding: 15px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.player-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.player-avatar {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #ff69b4;
+}
+
+.player-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.player-name {
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #ff69b4;
+}
+
+.score {
+  font-size: 24px;
+  margin: 10px 0;
+  color: #ff1493;
+}
+
+.score-bar {
+  background-color: #ffe4e1;
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  background-color: #ff69b4;
+  transition: width 0.3s ease-in-out;
+}
+
+.point-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
+}
+
+.point-buttons button {
+  padding: 5px 10px;
+  font-size: 14px;
+}
+
+.add-point {
+  background-color: #32cd32;
+}
+
+.subtract-point {
+  background-color: #ff6347;
+}
+
+.delete-student {
+  background-color: #ffa500;
+  margin-top: 10px;
+}
+
+#top-players {
+  margin-top: 30px;
+  background-color: rgba(255, 250, 240, 0.9);
+  padding: 20px;
+  border-radius: 15px;
+  border: 3px solid #ffd700;
+}
+
+#top-players ol {
+  padding-left: 20px;
+  color: #ff69b4;
+}
+
+#game-history {
+  margin-top: 30px;
+  background-color: rgba(255, 250, 240, 0.9);
+  padding: 20px;
+  border-radius: 15px;
+  border: 3px solid #ffd700;
+}
+
+#game-history ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+#game-history li {
+  margin-bottom: 10px;
+  border-bottom: 2px dashed #ff69b4;
+  padding-bottom: 10px;
+}
+
+@media (max-width: 600px) {
+  .controls {
+    flex-direction: column;
+  }
+  
+  .scoreboard {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌟 可愛個人積分競賽 🌟</h1>
+    <div class="controls">
+      <div>
+        <label for="player-count">學生人數：</label>
+        <input type="number" id="player-count" min="1" max="50" value="5">
+        <button onclick="initGame()">開始新遊戲</button>
+      </div>
+      <div>
+        <input type="text" id="student-name" placeholder="輸入學生姓名">
+        <button onclick="addStudent()">添加學生</button>
+      </div>
+    </div>
+    <div id="scoreboard" class="scoreboard"></div>
+    <div id="top-players">
+      <h2>🏆 前十名排行榜 🏆</h2>
+      <ol id="top-players-list"></ol>
+    </div>
+    <div id="game-history">
+      <h2>📜 遊戲歷史記錄 📜</h2>
+      <ul id="game-history-list"></ul>
+    </div>
+  </div>
+
+<script>
+const MAX_SCORE = 20;
+const AVATARS = [
+  'cute_cat.svg', 'cute_dog.svg', 'cute_rabbit.svg', 'cute_bear.svg', 'cute_panda.svg',
+  'cute_fox.svg', 'cute_owl.svg', 'cute_penguin.svg', 'cute_koala.svg', 'cute_lion.svg',
+  'cute_elephant.svg', 'cute_giraffe.svg', 'cute_monkey.svg', 'cute_unicorn.svg', 'cute_dinosaur.svg',
+  'cute_shark.svg', 'cute_dolphin.svg', 'cute_octopus.svg', 'cute_butterfly.svg', 'cute_bee.svg',
+  'cute_ladybug.svg', 'cute_turtle.svg', 'cute_frog.svg', 'cute_bird.svg', 'cute_chicken.svg',
+  'cute_pig.svg', 'cute_sheep.svg', 'cute_cow.svg', 'cute_horse.svg', 'cute_squirrel.svg'
+];
+
+let players = [];
+let gameHistory = [];
+let usedAvatars = new Set();
+
+function initGame() {
+  const playerCount = parseInt(document.getElementById('player-count').value);
+  if (playerCount < 1 || playerCount > 50) {
+    alert('請輸入1到50之間的學生人數');
+    return;
+  }
+  players = Array.from({length: playerCount}, (_, i) => ({
+    name: `學生${i + 1}`,
+    score: 0,
+    avatar: getRandomAvatar()
+  }));
+  updateScoreboard();
+  updateTopPlayers();
+  changeBackground();
+  usedAvatars.clear();
+}
+
+function getRandomAvatar() {
+  let availableAvatars = AVATARS.filter(avatar => !usedAvatars.has(avatar));
+  if (availableAvatars.length === 0) {
+    usedAvatars.clear();
+    availableAvatars = AVATARS;
+  }
+  const randomAvatar = availableAvatars[Math.floor(Math.random() * availableAvatars.length)];
+  usedAvatars.add(randomAvatar);
+  return randomAvatar;
+}
+
+function addStudent() {
+  const name = document.getElementById('student-name').value.trim();
+  if (name && players.length < 50) {
+    players.push({ name, score: 0, avatar: getRandomAvatar() });
+    updateScoreboard();
+    updateTopPlayers();
+    document.getElementById('student-name').value = '';
+  } else if (players.length >= 50) {
+    alert('已達到最大學生人數（50人）');
+  } else {
+    alert('請輸入有效的學生姓名');
+  }
+}
+
+function updateScoreboard() {
+  const scoreboard = document.getElementById('scoreboard');
+  scoreboard.innerHTML = '';
+  players.forEach((player, index) => {
+    const playerCard = document.createElement('div');
+    playerCard.className = 'player-card';
+    playerCard.innerHTML = `
+      <div class="player-avatar">
+        <img src="${player.avatar}" alt="${player.name}的頭像">
+      </div>
+      <div class="player-name">${player.name}</div>
+      <div class="score">${player.score}</div>
+      <div class="score-bar">
+        <div class="score-fill" style="width: ${(player.score / MAX_SCORE) * 100}%"></div>
+      </div>
+      <div class="point-buttons">
+        <button class="add-point" onclick="adjustScore(${index}, 1)">+1</button>
+        <button class="subtract-point" onclick="adjustScore(${index}, -1)">-1</button>
+      </div>
+      <button class="delete-student" onclick="deleteStudent(${index})">刪除學生</button>
+    `;
+    scoreboard.appendChild(playerCard);
+  });
+}
+
+function adjustScore(playerIndex, points) {
+  players[playerIndex].score += points;
+  if (players[playerIndex].score < 0) {
+    players[playerIndex].score = 0;
+  } else if (players[playerIndex].score > MAX_SCORE) {
+    players[playerIndex].score = MAX_SCORE;
+  }
+  updateScoreboard();
+  updateTopPlayers();
+  checkGameEnd();
+}
+
+function deleteStudent(playerIndex) {
+  if (confirm(`確定要刪除 ${players[playerIndex].name} 嗎？`)) {
+    usedAvatars.delete(players[playerIndex].avatar);
+    players.splice(playerIndex, 1);
+    updateScoreboard();
+    updateTopPlayers();
+  }
+}
+
+function updateTopPlayers() {
+  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+  const topPlayers = sortedPlayers.slice(0, 10);
+  const topPlayersList = document.getElementById('top-players-list');
+  topPlayersList.innerHTML = topPlayers.map(player => `
+    <li>
+      <img src="${player.avatar}" alt="${player.name}的頭像" style="width: 30px; height: 30px; border-radius: 50%; vertical-align: middle; margin-right: 10px;">
+      ${player.name}: ${player.score}分
+    </li>
+  `).join('');
+}
+
+function checkGameEnd() {
+  if (players.some(player => player.score === MAX_SCORE)) {
+    alert('遊戲結束！');
+    recordGameHistory();
+    changeBackground();
+  }
+}
+
+function recordGameHistory() {
+  const gameDate = new Date().toLocaleString();
+  const gameResults = players.map(player => `${player.name}: ${player.score}分`).join(', ');
+  gameHistory.unshift({ date: gameDate, results: gameResults });
+  updateGameHistory();
+}
+
+function updateGameHistory() {
+  const gameHistoryList = document.getElementById('game-history-list');
+  gameHistoryList.innerHTML = gameHistory.map(game => `
+    <li>
+      <strong>${game.date}</strong><br>
+      ${game.results}
+    </li>
+  `).join('');
+}
+
+function changeBackground() {
+  const backgrounds = [
+    'linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%)',
+    'linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%)',
+    'linear-gradient(to top, #fad0c4 0%, #ffd1ff 100%)',
+    'linear-gradient(to right, #ffecd2 0%, #fcb69f 100%)',
+    'linear-gradient(to right, #ff8177 0%, #ff867a 0%, #ff8c7f 21%, #f99185 52%, #cf556c 78%, #b12a5b 100%)',
+    'linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%)',
+    'linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%)',
+    'linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%)',
+    'linear-gradient(120deg, #fccb90 0%, #d57eeb 100%)',
+    'linear-gradient(to right, #4facfe 0%, #00f2fe 100%)',
+    'url("cute_background1.jpg")',
+    'url("cute_background2.jpg")',
+    'url("cute_background3.jpg")',
+    'url("cute_background4.jpg")',
+    'url("cute_background5.jpg")'
+  ];
+  const randomBackground = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+  document.body.style.background = randomBackground;
+  document.body.style.backgroundSize = 'cover';
+  document.body.style.backgroundAttachment = 'fixed';
+}
+
+// 初始化遊戲
+initGame();
+</script>
+</body>
+</html>
